@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { BlogService } from "../services/blogService";
 import { validationResult } from "express-validator";
 import { Serializer } from "../serializers/serializers";
+import Blog from "../models/blog";
 
 interface userRequest extends Request {
   user?: any;
@@ -9,8 +10,26 @@ interface userRequest extends Request {
 
 export const getAllBlogs = async (req: Request, res: Response) => {
   try {
-    const blogs = await BlogService.getAllBlogs();
-    res.json({ status: "success", data: Serializer.blogsSerializer(blogs) });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const startIndex = (page - 1) * limit;
+    const total = await Blog.countDocuments();
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(total / limit);
+
+    const blogs = await BlogService.getAllBlogs(startIndex, limit);
+    res.json({
+      status: "success",
+      data: Serializer.blogsSerializer(blogs),
+      pagination: {
+        total,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    });
   } catch (err: any) {
     res.status(500).json({ status: "error", message: err.message });
   }
@@ -21,13 +40,14 @@ export const createBlog = async (req: userRequest, res: Response) => {
     const errors = validationResult(req);
     // if there is error then return Error
     if (!errors.isEmpty()) {
-       res.status(400).json({
+      res.status(400).json({
         success: false,
-        errors: errors.array()
+        errors: errors.array(),
       });
       return;
     }
     req.body.author = req.user._id;
+
     const blog = await BlogService.createBlog(req.body);
     res.json({
       status: "success",
@@ -64,7 +84,7 @@ export const updateBlog = async (req: Request, res: Response) => {
 export const deleteBlog = async (req: Request, res: Response) => {
   try {
     const blog = await BlogService.deleteBlog(req.params.id);
-    res.json({ status: "success", message: "blog deleted successfully." });
+    res.sendStatus(204);
   } catch (err: any) {
     res.status(500).json({ status: "error", message: err.message });
   }

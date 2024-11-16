@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import userRouter from "./userRoutes";
 import blogRouter from "./blogRoutes";
-
 const apiRouter = express.Router();
 
 apiRouter.get("/", (req: Request, res: Response) => {
@@ -10,5 +9,6 @@ apiRouter.get("/", (req: Request, res: Response) => {
 
 apiRouter.use("/user", userRouter);
 apiRouter.use("/blogs", blogRouter);
+
 
 export default apiRouter;

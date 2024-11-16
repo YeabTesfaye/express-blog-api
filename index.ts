@@ -8,11 +8,10 @@ import express, {
 } from "express";
 import cors from "cors";
 import morgan from "morgan";
-import apiRouter from "./routes/api";
-import {connectDB} from "./config/db";
-
+import apiRouter from "./src/routes/api";
+import { connectDB } from "./src/configs/db";
 connectDB();
-console.log(process.env.DATABASE_URL)
+console.log(process.env.DATABASE_URL);
 const port = process.env.PORT || 3000;
 
 const app: Express = express();

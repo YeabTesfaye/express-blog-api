@@ -1,18 +1,20 @@
 {
-  "name": "express-blog-api",
+  "name": "express-app-with-docker-setup",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
+    "chai-http": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
@@ -27,7 +29,6 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.9.0",
-    "concurrently": "^9.1.0",
     "dotenv": "^16.4.5",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",

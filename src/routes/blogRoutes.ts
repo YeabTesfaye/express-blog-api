@@ -14,6 +14,7 @@ import {
 
 const blogRouter = express.Router();
 
+
 blogRouter
   .route("/")
   .get(getAllBlogs)
