@@ -1,6 +1,6 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
-import app from "../index"; // Ensure this exports only the app, not the server
+import app from "../index"; 
 
 
 chai.should();
