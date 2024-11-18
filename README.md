@@ -7,7 +7,6 @@ This repository helps you get started with building a RESTful API using **Expres
 ### Prerequisites:
 - **Node.js** installed
 - **MongoDB** running locally or a MongoDB cloud instance
-- **Docker** (Optional)
 
 ### Commands to Set Up and Run the App Locally:
 
