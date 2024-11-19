@@ -5,6 +5,7 @@ import { userService } from "../services/userService";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { Serializer } from "../serializers/serializers";
+import catchAsync from "../utils/catchAsync";
 
 interface profileRequest extends Request {
   user?: any;
@@ -12,91 +13,83 @@ interface profileRequest extends Request {
 
 export const AuthController = {
   /* register/create new user */
-  registerUser: async (req: Request, res: Response) => {
-    try {
-      const errors = validationResult(req);
-      // if there is error then return Error
-      if (!errors.isEmpty()) {
-        res.status(400).json({
-          status: "error",
-          errors: errors.array(),
-        });
-        return;
-      }
-      const user = req.body;
-      if (!user.email || !user.password) {
-        res.status(400).send({
-          status: "error",
-          message: "Username and password are required.",
-        });
-        return;
-      }
-      const reg_user = await userService.createUser({
-        name: user.name,
-        email: user.email,
-        password: user.password,
+  registerUser: catchAsync(async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    // if there is error then return Error
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        status: "error",
+        errors: errors.array(),
       });
-      res.json({
-        status: "success",
-        message: "user created successfuly",
-        data: Serializer.userSerializer(reg_user),
-      });
-    } catch (err: any) {
-      res.status(500).json({ status: "error", message: err.message });
+      return;
     }
-  },
+    const user = req.body;
+    if (!user.email || !user.password) {
+      res.status(400).send({
+        status: "error",
+        message: "Username and password are required.",
+      });
+      return;
+    }
+    const reg_user = await userService.createUser({
+      name: user.name,
+      email: user.email,
+      password: user.password,
+    });
+    res.json({
+      status: "success",
+      message: "user created successfuly",
+      data: Serializer.userSerializer(reg_user),
+    });
+  }),
 
   /* user login */
-  loginUser: async (req: Request, res: Response) => {
-    try {
-      const errors = validationResult(req);
+  loginUser: catchAsync(async (req: Request, res: Response) => {
+    const errors = validationResult(req);
 
-      // if there is error then return Error
-      if (!errors.isEmpty()) {
-        res.status(400).json({
-          status: "error",
-          errors: errors.array(),
-        });
-        return;
-      }
-
-      /* check user is exist with our system */
-      const user = await User.findOne({
-        email: req.body.email,
+    // if there is error then return Error
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        status: "error",
+        errors: errors.array(),
       });
-      if (!user) {
-        res.status(400).send({
-          status: "error",
-          message: "No account is associated with the given email",
-        });
-        return;
-      }
-
-      /* compare password */
-      const isMatch = await bcrypt.compare(req.body.password, user.password);
-      if (!isMatch) {
-        res.status(400).send({ status: "error", message: "Invalid password" });
-        return;
-      }
-      //create token
-      const token = jwt.sign(
-        { _id: user._id, email: user.email, role: user.role },
-        process.env.JWT_SECRET!,
-        {
-          expiresIn: "1d",
-        }
-      );
-      res.json({
-        status: "success",
-        data: { token, user: Serializer.userSerializer(user) },
-      });
-    } catch (err: any) {
-      res.status(500).json({ status: "error", message: err.message });
+      return;
     }
-  },
+
+    /* check user is exist with our system */
+    const user = await User.findOne({
+      email: req.body.email,
+    });
+    if (!user) {
+      res.status(400).send({
+        status: "error",
+        message: "No account is associated with the given email",
+      });
+      return;
+    }
+
+    /* compare password */
+    const isMatch = await bcrypt.compare(req.body.password, user.password);
+    if (!isMatch) {
+      res.status(400).send({ status: "error", message: "Auth Failed!" });
+      return;
+    }
+    //create token
+    const token = jwt.sign(
+      { _id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: "1d",
+      }
+    );
+    res.json({
+      status: "success",
+      data: { token, user: Serializer.userSerializer(user) },
+    });
+  }),
 
   /* get user profile */
-  getUser: async (req: profileRequest, res: Response) => {
+  getUser: catchAsync(async (req: profileRequest, res: Response) => {
     const user = await User.findOne({
       email: req.user.email,
     });
@@ -104,5 +97,5 @@ export const AuthController = {
       status: "success",
       data: Serializer.userSerializer(user),
     });
-  },
+  }),
 };

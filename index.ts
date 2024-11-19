@@ -2,17 +2,21 @@ import express, {
   Express,
   Request,
   Response,
+  NextFunction,
   ErrorRequestHandler,
 } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import apiRouter from "./src/routes/api";
-import { connectDB } from "./src/configs/db";
 import envVarSchema from "./src/configs/env.config";
+import { connectDB } from "./src/configs/db";
+
 connectDB(envVarSchema.DATABASE_URL);
-const port = envVarSchema.PORT || 3000;
+const port = envVarSchema.PORT;
 
 const app: Express = express();
+
+// Middleware setup
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,6 +27,11 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/v1/", apiRouter);
+
+// 404 Page Not Found handler (Catch-all for unmatched routes)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({ message: "404 - Page Not Found" });
+});
 
 /* Error handler middleware */
 app.use(((err, req, res, next) => {

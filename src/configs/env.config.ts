@@ -8,13 +8,15 @@ interface EnvVars {
   DATABASE_URL: string;
   JWT_SECRET: string;
   PORT: number;
+  env : string;
 }
 
 // Define a Joi schema for environment variables
 const envVarSchema = Joi.object({
   DATABASE_URL: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),
-  PORT: Joi.number().positive().required(),
+  PORT: Joi.number().positive().default(3000),
+  env : Joi.string().required()
 }).unknown();
 
 // Validate environment variables
@@ -33,6 +35,7 @@ const validatedEnvVars: EnvVars = {
   DATABASE_URL: envVars.DATABASE_URL,
   JWT_SECRET: envVars.JWT_SECRET,
   PORT: envVars.PORT,
+  env : envVars.env
 };
 
 export default validatedEnvVars;
