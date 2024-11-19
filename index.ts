@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
 import express, {
   Express,
   Request,
@@ -10,9 +8,9 @@ import cors from "cors";
 import morgan from "morgan";
 import apiRouter from "./src/routes/api";
 import { connectDB } from "./src/configs/db";
-connectDB();
-console.log(process.env.DATABASE_URL);
-const port = process.env.PORT || 3000;
+import envVarSchema from "./src/configs/env.config";
+connectDB(envVarSchema.DATABASE_URL);
+const port = envVarSchema.PORT || 3000;
 
 const app: Express = express();
 app.use(cors());
