@@ -6,6 +6,7 @@ import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { Serializer } from "../serializers/serializers";
 import catchAsync from "../utils/catchAsync";
+import logger from "../configs/logger";
 
 interface profileRequest extends Request {
   user?: any;
@@ -17,6 +18,10 @@ export const AuthController = {
     const errors = validationResult(req);
     // if there is error then return Error
     if (!errors.isEmpty()) {
+      logger.warn("Validation failed during user registration", {
+        errors: errors.array(),
+      });
+
       res.status(400).json({
         status: "error",
         errors: errors.array(),
@@ -25,6 +30,7 @@ export const AuthController = {
     }
     const user = req.body;
     if (!user.email || !user.password) {
+      logger.warn("Email or password missing during user registration");
       res.status(400).send({
         status: "error",
         message: "Username and password are required.",
@@ -36,6 +42,7 @@ export const AuthController = {
       email: user.email,
       password: user.password,
     });
+    logger.info(`User registered successfully: ${reg_user.email}`);
     res.json({
       status: "success",
       message: "user created successfuly",
@@ -49,6 +56,7 @@ export const AuthController = {
 
     // if there is error then return Error
     if (!errors.isEmpty()) {
+      logger.warn("Validation failed during login", { errors: errors.array() });
       res.status(400).json({
         status: "error",
         errors: errors.array(),
@@ -61,6 +69,10 @@ export const AuthController = {
       email: req.body.email,
     });
     if (!user) {
+      logger.warn(
+        `Login failed: No account found for email: ${req.body.email}`
+      );
+
       res.status(400).send({
         status: "error",
         message: "No account is associated with the given email",
@@ -71,6 +83,9 @@ export const AuthController = {
     /* compare password */
     const isMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isMatch) {
+      logger.warn(
+        `Login failed: Incorrect password for email: ${req.body.email}`
+      );
       res.status(400).send({ status: "error", message: "Auth Failed!" });
       return;
     }
@@ -82,6 +97,8 @@ export const AuthController = {
         expiresIn: "1d",
       }
     );
+    logger.info(`User logged in successfully: ${user.email}`);
+
     res.json({
       status: "success",
       data: { token, user: Serializer.userSerializer(user) },
@@ -93,6 +110,12 @@ export const AuthController = {
     const user = await User.findOne({
       email: req.user.email,
     });
+    if (!user) {
+      logger.warn(`User profile not found for email: ${req.user.email}`);
+      return;
+    }
+    logger.info(`User profile fetched successfully: ${user.email}`);
+
     res.json({
       status: "success",
       data: Serializer.userSerializer(user),
